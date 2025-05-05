@@ -1,0 +1,134 @@
+#include<stdio.h>
+#include<iostream>
+#include<conio.h>
+#include<string>
+#include<locale>
+using namespace std;
+double N,beta,rb,eps,pa,u,pd,h,dia,Et, Ia, Is, R; //Asignación de variables globales pedidas en función principal
+
+void entrada();
+//***********************************************************
+// Ecuaciones diferenciales (Cuidado con el orden de los parámetros) 
+double dif_suc ( double St,  double Et, double Ia, double Is)
+{return -beta*rb*St*Ia/N - beta*St*Is/N;}
+double dif_incub (double St, double Et, double Ia, double Is) 
+{return beta*rb*St*Ia/N + beta*St*Is/N - eps*pa*Et - eps*(1-pa)*Et;}
+double dif_infectados_asint ( double St,  double Et, double Ia, double Is) 
+{return eps*pa*Et-u*Ia;}
+double dif_infectados_sint ( double St,  double Et, double Ia, double Is)
+{return eps*(1-pa)*Et-u*(1-pd)*Is-u*pd*Is;}
+double dif_recuperados ( double St,  double Et, double Ia, double Is)
+{return u*(1-pd)*Is+u*Ia;}
+double dif_muertos ( double St,  double Et, double Ia, double Is)
+{return u*pd*Is;}
+//Función para Runge-Kutta
+void Rungekutta (double &St, double &Et, double &Ia, double &Is, double &R, double &D, double& t){
+double s1,e1,ia1,is1,r1,d1,n1,s2,e2,ia2,is2,r2,d2,n2,s3,e3,ia3,is3,r3,d3,n3,s4,e4,ia4,is4,r4,d4,n4;
+//funciones 1
+s1 = dif_suc( St, Et,Ia, Is);
+e1 = dif_incub(St, Et, Ia, Is);
+ia1 = dif_infectados_asint(St, Et,Ia, Is);
+is1 = dif_infectados_sint(St,Et,Ia,Is);
+r1 = dif_recuperados(St,Et,Ia,Is);
+d1 = dif_muertos(St,Et,Ia,Is);
+//funciones 2
+s2 = dif_suc(St+h/2*s1,Et+h/2*e1,Ia+h/2*ia1,Is+h/2*is1);
+e2 = dif_incub(St+h/2*s1,Et+h/2*e1,Ia+h/2*ia1,Is+h/2*is1);
+ia2 = dif_infectados_asint(St+h/2*s1,Et+h/2*e1,Ia+h/2*ia1,Is+h/2*is1);
+is2 = dif_infectados_sint(St+h/2*s1,Et+h/2*e1,Ia+h/2*ia1,Is+h/2*is1);
+r2 = dif_recuperados(St+h/2*s1,Et+h/2*e1,Ia+h/2*ia1,Is+h/2*is1);
+d2 = dif_muertos(St+h/2*s1,Et+h/2*e1,Ia+h/2*ia1,Is+h/2*is1);
+//funciones 3
+s3 = dif_suc(St+h/2*s2,Et+h/2*e2,Ia+h/2*ia2,Is+h/2*is2);
+e3 = dif_incub(St+h/2*s2,Et+h/2*e2,Ia+h/2*ia2,Is+h/2*is2);
+ia3 = dif_infectados_asint(St+h/2*s2,Et+h/2*e2,Ia+h/2*ia2,Is+h/2*is2);
+is3 = dif_infectados_sint(St+h/2*s2,Et+h/2*e2,Ia+h/2*ia2,Is+h/2*is2);
+r3 = dif_recuperados(St+h/2*s2,Et+h/2*e2,Ia+h/2*ia2,Is+h/2*is2);
+d3 = dif_muertos(St+h/2*s2,Et+h/2*e2,Ia+h/2*ia2,Is+h/2*is2);
+//funciones 4
+s4 = dif_suc(St+h*s3,Et+h*e3,Ia+h*ia3,Is+h*is3);
+e4 = dif_incub(St+h*s3,Et+h*e3,Ia+h*ia3,Is+h*is3);
+ia4 = dif_infectados_asint(St+h*s3,Et+h*e3,Ia+h*ia3,Is+h*is3);
+is4 = dif_infectados_sint(St+h*s3,Et+h*e3,Ia+h*ia3,Is+h*is3);
+r4 = dif_recuperados(St+h*s3,Et+h*e3,Ia+h*ia3,Is+h*is3);
+d4 = dif_muertos(St+h*s3,Et+h*e3,Ia+h*ia3,Is+h*is3);
+//Nuevas variables
+t += h;
+St = St+h*(s1+2*s2+2*s3+s4)/6;
+Et = Et+h*(e1+2*e2+2*e3+e4)/6;
+Ia = Ia+h*(ia1+2*ia2+2*ia3+ia4)/6;
+Is = Is+h*(is1+2*is2+2*is3+is4)/6;
+R = R+h*(r1+2*r2+2*r3+r4)/6;
+D = D+h*(d1+2*d2+2*d3+d4)/6;
+}
+
+int main(){
+	setlocale(LC_ALL, "spanish");
+	double St, D, t;
+	entrada();
+	St=N;
+	D = t = 0;
+	printf("%15s %15s %15s %15s %15s %15s %15s %15s \n", "Dia", "Suceptibles", "Expuestos", "Inf asintomaticos", "Inf sintomaticos", "Recuperados", "Fallecidos", "Población viva");
+	while(t<=dia){
+		printf("%15.5lf %15.5lf %15.5lf %15.5lf %15.5lf %15.5lf %15.5lf %15.5lf \n", t, St, Et, Ia, Is, R, D, N-D);
+		Rungekutta(St, Et, Ia, Is, R, D, t);
+	}
+}
+void entrada(){
+	cout<<"Este programa calcula los valores del proyecto Modelo Covid-19, y los imprime en la misma ventanilla (con 5 decimales de presición).\n";
+	cout<<"Por favor, ingrese los valores pedidos."<<endl;
+	cout<<"Valores iniciales:"<<endl<<endl;
+	cout<<"Población total: ";
+	cin>>N;
+	cout<<"Población inicial expuesta: ";
+	cin>>Et;
+	cout<<"Población inicial infectada asintomática: ";
+	cin>>Ia;
+	cout<<"Población inicial infectada sintomática: ";	
+	cin>>Is;
+	cout<<"Población inicial recuperada ";
+	cin>>R;
+	cout<<"Se toman inicialmente 0 fallecidos"<<endl;
+	cout<<"Valores de las tasas:\n";
+	do{
+		cout<<"Tasa de contagio [0,1]: ";
+		cin>>beta;	
+	}while((beta<=0.0) || (beta>=1.0));
+	
+	do{
+		cout<<"Fracción de la tasa de contagio para los casos asintomáticos: ";
+		cin>>rb;	
+	}while(rb<0 or rb>1);
+	
+	
+	do{
+		cout<<"Tasa de incubación (1/días de incubación del virus) [0,1]: ";
+		cin>>eps;	
+	}while(eps<0 or eps>1);
+	
+	
+	do{
+		cout<<"Fracción de infectados asintomáticos [0,1]: ";
+		cin>>pa;	
+	}while(pa<0 or pa>1);
+	
+	
+	do{
+		cout<<"Tasa de recuperación (1/días de la recuperación) [0,1]: ";
+		cin>>u;	
+	}while(u<0 or u>1);
+	
+	
+	do{
+		cout<<"Fracción de casos sintomáticos que fallecen [0,1]: ";
+		cin>>pd;	
+	}while(pd<0 or pd>1);
+	
+	do{
+		cout<<"Día máximo de la epidemia: ";
+		cin>>dia;
+	}while(dia<=0);
+	
+	cout<<"Diferencial del tiempo para evaluar Runge-Kutta (h): ";
+	cin>>h;
+	return;} 
