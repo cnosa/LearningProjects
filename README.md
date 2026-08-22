@@ -1,3 +1,3 @@
-# Cursos
-Un repositorio dedicado al aprendizaje y al desarrollo de proyectos a lo largo de varios campos científicos y tecnológicos.
+# Projects
+A repository dedicated to learning and project development across various scientific and technological fields.
 
